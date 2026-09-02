@@ -45,13 +45,13 @@ Given an image and a question, produce an answer. Answers fall into three types:
 
 **GQA** (% exact-match accuracy, test-dev balanced):
 
-| Model | Binary | Other | Overall |
+| Model | Binary | Open | Overall |
 |---|---|---|---|
 | Vanilla | 64.46 | 37.95 | 47.49 |
 | LXMERT | 77.17 | 49.25 | **59.29** |
 | BLIP | 65.66 | 36.69 | 47.11 |
 
-On VQA v2, accuracy improves monotonically with architectural generation. On GQA the ranking **reverses**: LXMERT (fine-tuned specifically on GQA) outperforms BLIP, whose open-vocabulary generation is applied zero-shot with no GQA-specific adaptation. This shows that **dataset-specific training, not architectural generation alone, drives cross-dataset generalization** — see the report's Discussion section for the full analysis.
+On VQA v2, accuracy improves monotonically with architectural generation. On GQA the ranking **reverses**: LXMERT (fine-tuned specifically on GQA) outperforms BLIP, whose open-vocabulary generation is applied zero-shot with no GQA-specific adaptation. This suggests that **dataset-specific training may contribute more to cross-dataset generalization than architectural generation alone** — see the report's Discussion section for the full analysis.
 
 Raw evaluation outputs: [`results/`](results/).
 
