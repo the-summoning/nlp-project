@@ -1,30 +1,68 @@
-# NLP Homework as a Project
+# From Classification to Generation: A Comparative Evaluation of VQA Architectures
 
+Visual Question Answering (VQA) is a multimodal task at the intersection of Computer Vision and Natural Language Processing: given an image *I* and a natural language question *Q*, a system must produce a natural language answer *A*.
 
-Visual Question Answering (VQA) is a multimodal task at the intersection of Computer Vision and Natural Language Processing. Given an image I and a natural language question Q, the system must produce a natural language answer A.
+This project empirically compares **one representative model per architectural generation** of the VQA literature — a CNN+LSTM baseline implemented from scratch, LXMERT, and BLIP — on two benchmarks, **VQA v2** and **GQA**, to study how architecture and training data jointly determine cross-dataset generalization.
 
-Answering a visual question correctly requires at minimum: (i) visual feature extraction (objects, attributes, spatial relations); (ii) natural language understanding; (iii) cross-modal alignment and reasoning. Examples:
-- Type: Y/N, Q: Is the dog sitting on the couch? A: yes  (Object detection + spatial relation)
-- Type: Counting, Q: How many people are in the image? A: 3 (Instance counting)
+Full write-up: [`report/acl2015.pdf`](report/acl2015.pdf) (ACL-style report, see [`report/acl2015.tex`](report/acl2015.tex) and [`report/sections/`](report/sections/) for source).
 
-VQA has direct applications in several domains, from assistive technology (image-based question answering for visually impaired users) to medical imaging (automated query interfaces for radiology and pathology images).
+## Task
 
-The VQA literature can be organised into three architectural generations, reflecting the broader evolution of deep learning for multimodal understanding:
-1) Era I — CNN + RNN models (2015–2018): Antol et al. (2015) introduced the VQA task and baseline, encoding images with VGGNet and questions with a LSTM, achieving  approximately 54% accuracy on VQA v2. Anderson et al. (2018) proposed Bottom-Up and Top-Down Attention, combining Faster R-CNN region proposals with a top-down attention mechanism, reaching ~65% and establishing the dominant pre-Transformer paradigm.
+Given an image and a question, produce an answer. Answers fall into three types:
 
-2) Era II — Transformer-based vision-language models (2019–2021): ViLBERT (Lu et al., 2019) introduced dual-stream Transformer encoders with cross-modal attention, achieving approximately 73% on VQA v2. Tan and Bansal (2019) proposed LXMERT with separate Transformers for object relationships, language, and cross-modality attention, reaching ~72% on VQA v2.
+| Type | Example question | Example answer |
+|---|---|---|
+| Yes/No | "Is the dog sitting on the couch?" | "yes" |
+| Number | "How many people are in the image?" | "3" |
+| Other | "What color is the car?" | "red" |
 
-3) Era III — Large-scale pretrained vision-language models (2022–present): this era is characterised by large-scale multimodal pretraining on image-text pairs, which significantly improves cross-modal alignment without relying solely on task-specific supervision. Among the models in this generation, BLIP represents a well-suited candidate for this project: it achieves competitive performance while remaining reproducible.
+## Models compared
 
+| Generation | Model | Paradigm | VQA v2 checkpoint | GQA checkpoint |
+|---|---|---|---|---|
+| I — CNN+RNN fusion (2015-2018) | **Vanilla VQA** | closed-vocabulary classification | trained from scratch (`notebooks/vanilla-vqa.ipynb`) | trained from scratch |
+| II — Cross-modal Transformers (2019-2021) | **LXMERT** | closed-vocabulary classification | `unc-nlp/lxmert-vqa-uncased` | `unc-nlp/lxmert-gqa-uncased` |
+| III — Generative pretraining (2022-present) | **BLIP** | open-vocabulary generation | `ybelkada/blip-vqa-base` | same checkpoint (zero-shot, no GQA-specific model exists) |
 
-Main reference paper: Visual Question Answering: A Survey of Methods, Datasets, Evaluation, and Challenges (ACM Computing Surveys, 2025)
+**Vanilla VQA** (`notebooks/vanilla-vqa.ipynb`): images encoded offline with a frozen ResNet-101 (ImageNet-pretrained, 2048-d features), questions tokenized with NLTK and encoded with a 2-layer LSTM initialized with GloVe embeddings. Image and question features are projected to 1024-d (Linear + LayerNorm + Tanh), fused via Hadamard product, and classified over a fixed answer vocabulary (3129 answers for VQA v2, 1842 for GQA).
 
+**LXMERT** (`notebooks/lxmert.ipynb`) and **BLIP** (`notebooks/blip.ipynb`) are evaluated zero-shot via their pretrained HuggingFace checkpoints, without any additional fine-tuning.
 
-Datasets considered in this project: VQA v2 (primary benchmark), GQA (secondary benchmark, to evaluate generalization beyond the training distribution). Evaluation will be conducted using the standard VQA accuracy metrics, with a possible additional breakdown by question type (yes/no, counting, other). I would like also to include random and majority baselines.
+## Datasets
 
-Models (expected performance based on reported results in the literature):
-1) Baseline: Vanilla VQA (VGGNet/ResNet + 2-layer LSTM). Implemented from scratch. Expected VQA v2 acc.: ~54%.
-2) Intermediate: LXMERT. Usage of HuggingFace model 'unc-nlp/lxmert-vqa-uncased'. Expected VQA v2 acc.: ~72%.
-3) SOTA: BLIP (ViT-B/L + BERT encoder-decoder). Usage of HuggingFace model 'Salesforce/blip-vqa-base'. Expected VQA v2 acc.: ~78%.
+- **[VQA v2](https://visualqa.org/)** (primary benchmark): >1.1M questions on COCO images, 10 answers/question, soft accuracy metric.
+- **[GQA](https://cs.stanford.edu/people/dorarad/gqa/)** (secondary benchmark): questions generated from scene graphs, used to test compositional reasoning and generalization beyond VQA v2 training.
 
-Vanilla VQA and LXMERT operate under a closed-vocabulary classification paradigm, producing answers via argmax over a fixed answer set. BLIP (Salesforce/blip-vqa-base) instead produces answers via token-by-token generation with no fixed vocabulary. 
+## Results
+
+**VQA v2** (% soft accuracy, test-dev):
+
+| Model | Y/N | Number | Other | Overall |
+|---|---|---|---|---|
+| Vanilla | 75.23 | 35.70 | 46.03 | 56.88 |
+| LXMERT | 86.76 | 52.95 | 60.17 | 70.30 |
+| BLIP | 92.25 | 54.55 | 66.91 | **75.95** |
+
+**GQA** (% exact-match accuracy, test-dev balanced):
+
+| Model | Binary | Other | Overall |
+|---|---|---|---|
+| Vanilla | 64.46 | 37.95 | 47.49 |
+| LXMERT | 77.17 | 49.25 | **59.29** |
+| BLIP | 65.66 | 36.69 | 47.11 |
+
+On VQA v2, accuracy improves monotonically with architectural generation. On GQA the ranking **reverses**: LXMERT (fine-tuned specifically on GQA) outperforms BLIP, whose open-vocabulary generation is applied zero-shot with no GQA-specific adaptation. This shows that **dataset-specific training, not architectural generation alone, drives cross-dataset generalization** — see the report's Discussion section for the full analysis.
+
+Raw evaluation outputs: [`results/`](results/).
+
+## Repository structure
+
+```
+notebooks/        Model implementation, training and evaluation (Vanilla VQA, LXMERT, BLIP)
+report/           ACL-style LaTeX report (source in sections/, compiled PDF)
+results/          Accuracy metrics per model/dataset (JSON)
+```
+
+## Use of GenAI tools
+
+Disclosed in full in the report ([`report/sections/genai.tex`](report/sections/genai.tex)): ChatGPT assisted with writing/debugging the model notebooks, Claude Code assisted with drafting and revising the report.

@@ -18,6 +18,7 @@
 \documentclass[11pt]{article}
 \usepackage{acl2015}
 \usepackage{times}
+\usepackage{amsmath}
 \usepackage{url}
 \usepackage{latexsym}
 \usepackage{natbib}
@@ -25,16 +26,13 @@
 \definecolor{citecolor}{RGB}{34,139,34}
 \usepackage[pagebackref=true,breaklinks=true,letterpaper=true,citecolor=citecolor,colorlinks,bookmarks=false]{hyperref}
 \usepackage[capitalise]{cleveref}
+\usepackage{booktabs}
 \usepackage[labelfont={bf,small},font=small]{caption}
 %\setlength\titlebox{5cm}
 \newcommand{\minisection}[1]{\noindent{\textbf{#1.}}}
-% You can expand the titlebox if you need extra space
-% to show all the authors. Please do not make the titlebox
-% smaller than 5cm (the original size); we will check this
-% in the camera-ready version and ask you to change it back.
 
 
-\title{NLP 2025-2026 Homeworkp report}
+\title{From Classification to Generation: A Comparative Evaluation of VQA Architectures on VQA v2 and GQA}
 
 \author{Davide Perniconi\\
   Sapienza University of Rome \\ 
@@ -44,68 +42,25 @@
 
 \begin{document}
 \maketitle
-\begin{abstract}
- Write here the abstract of your Homework/Homeworkp.
- How to write an abstract? We suggest you to read this~\cite{howabstract}
-\end{abstract}
 
-%Describe the NLP task
-%Provide examples of input and expected output
-%What is the current state-of-the-art for this task (study related work or surveys)
-%Applications for this task
-%List datasets available for
-%Existing tools or libraries that can be used
-%Papers with code
-%State-of-the-art evaluation
+\input{sections/abstract}
 
+\input{sections/task}
 
-\section{Task description/Problem statement}
-Describe in this Section the NLP task addressed in your Homework or Homeworkp.
-Provide definitions and cite the proper references.
-To correctly cite bibliographical references, you can read this~\cite{latexguide}. This \cite{DevlinCLT19} is an example of bibliographic reference.
+\input{sections/related_work}
 
-\subsection{Examples}
-In this Section, provide examples of input and expected output.
-Read this~\cite{latexfig}, for some instructions on how to include figures and tables in a LaTeX document
+\input{sections/datasets}
 
+\input{sections/tools}
 
-\subsection{Real-world applications}
-Describe real-world downstream applications involving the addressed algorithms/models.
+\input{sections/evaluation}
 
-\section{Related work}
-What is the current state-of-the-art for this task (primary related studies or surveys).
-How to write a good Related Work? Read this~\cite{relatedwork}.
+\input{sections/comparative}
 
-\section{Datasets and benchmarks}
-Describe available datasets and benchmarks.
+\input{sections/conclusions}
 
-\section{Existing tools, libraries, papers with code}
-Describe existing tools, libraries that can be used, and papers with code.
+\input{sections/genai}
 
-\section{State-of-the-art evaluation}
-Describe how existing systems/models are evaluated in the literature.
-
-\section{Comparative evaluation}
-For Homeworkp only, describe your comparative evaluation experimental setting:
-\begin{itemize}
-    \item describe the datasets;
-    \item describe the systems and the baselines;
-    \item describe the measures and the evaluation protocol.
-\end{itemize}
-
-\subsection{Results}
-Provide evidence about the resulting performances. Discuss the results, and try to motivate the performances. 
-
-\subsection{Discussion}
-What are the limits of the compared systems? What are the committed errors? Why?
-
-\section{Conclusions}
-Summarize your work, and more important, discuss future works.
-
-% \minisection{Contributions} A contribution statement declaring which author did what, in case more than one author.
-
-\minisection{Use of GenAI and LLM tools} Students are required to write a statement of the usage they used in the report and in their experimentation with Generative AI tools such as LLMs, as well as Vibe Coding, Codex, etc. Please be as specific as possible on which tools you use and why. We hope to discourage situations where we find a citation that is completely invented by an LLM. You can use these tools, but it is your primary responsibility for the content and material that you submit.   If we find that you used some of these tools in ways you did not disclose, it may affect your grade.
-
-\bibliographystyle{plain} % We choose the "plain" reference style
-\bibliography{refs} % Entries are in the refs.bib file
+\bibliographystyle{plain}
+\bibliography{refs}
 \end{document}

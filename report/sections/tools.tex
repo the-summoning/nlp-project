@@ -1,0 +1,7 @@
+\section{Existing tools, libraries, papers with code}
+
+\textbf{HuggingFace Transformers} provides pretrained checkpoints for LXMERT and BLIP through a unified API, making Transformer-based models accessible without re-implementing complex architectures. The library handles tokenization, preprocessing, and model loading with a few lines of code.
+
+\textbf{NLTK} is used in our baseline for word tokenization, paired with \textbf{GloVe}~\cite{pennington2014glove} (300-dimensional vectors from Common Crawl) to initialize the question embedding layer. Using pretrained embeddings accelerates LSTM convergence considerably on limited hardware.
+
+Regarding papers with code: our Vanilla VQA baseline follows the architecture proposed by Antol et al.~\cite{antol2015vqa}, whose official implementation is available in the \href{https://github.com/GT-Vision-Lab/VQA_LSTM_CNN}{\texttt{VQA\_LSTM\_CNN}} repository; our answer normalization (contraction expansion, e.g.\ ``arent''$\to$``aren't'', and number-word mapping, e.g.\ ``one''$\to$``1'') is adapted from the \href{https://github.com/GT-Vision-Lab/VQA}{official VQA evaluation code}. LXMERT~\cite{tan2019lxmert} and BLIP~\cite{li2022blip} also have official repositories (\href{https://github.com/airsplay/lxmert}{\texttt{airsplay/lxmert}}, \href{https://github.com/salesforce/BLIP}{\texttt{salesforce/BLIP}}), but we use their pretrained checkpoints directly through HuggingFace rather than the original code. All code is included in the project repository: \url{https://github.com/the-summoning/nlp-project}.

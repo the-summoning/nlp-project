@@ -1,0 +1,21 @@
+\section{Related Work}
+
+We organize the VQA literature into three broad architectural generations, reflecting its chronological evolution, and select one representative model per generation for our comparison.
+
+\subsection{CNN-RNN Fusion (2015--2018)}
+
+Antol et al.~\cite{antol2015vqa} introduced the VQA task alongside a baseline combining a VGGNet image encoder with an LSTM question encoder, reaching approximately 54\% accuracy on the original VQA (v1) dataset. The approach relied on a simple fusion operation (element-wise product, addition, or concatenation) between the two modalities before classification. This is the paradigm we replicate with our Vanilla VQA baseline: encode images with a CNN and questions with an RNN, then fuse and classify.
+
+Anderson et al.~\cite{anderson2018bottomup} advanced this paradigm with Bottom-Up and Top-Down Attention, using Faster R-CNN region proposals~\cite{ren2015fasterrcnn} to identify salient image regions guided by the question. Their model reached approximately 65\% on VQA v2. The key insight, that attention provides a learnable interface between vision and language, influenced all subsequent architectures.
+
+\subsection{Cross-Modal Transformers (2019--2021)}
+
+The Transformer~\cite{vaswani2017transformer} and BERT~\cite{DevlinCLT19} changed how models handle cross-modal alignment. ViLBERT \cite{lu2019vilbert} introduced dual-stream encoders with cross-modal attention gates, reaching about 70.55\% on VQA v2 test-dev. Rather than a single fusion step, attention is applied at multiple layers, letting the model build progressively refined image--question alignments.
+
+LXMERT~\cite{tan2019lxmert}, our second-generation model, employs three Transformer encoders: one for object-level visual features, one for language, and one for cross-modal interaction. Like the Vanilla baseline, it answers by selecting from a fixed vocabulary via a classification head. With 36 pre-extracted Faster R-CNN regions per image, LXMERT learns alignments between specific objects and question words. On VQA v2 it reaches approximately 72\%, with a separate checkpoint fine-tuned on GQA achieving 59.29\% in our evaluation.
+
+\subsection{Generative Pretraining (2022--present)}
+
+Vision Transformers~\cite{dosovitskiy2021vit} showed that Transformers can match CNNs on visual tasks given enough data, enabling fully Transformer-based vision-language models. BLIP~\cite{li2022blip} combines a ViT image encoder with a BERT-based encoder-decoder, pretrained on large image-text corpora.
+
+We use BLIP as our third-generation model. Unlike its predecessors, BLIP generates answers token-by-token rather than selecting from a fixed vocabulary. This open-vocabulary generation is both a strength (no vocabulary constraint) and a limitation: when applied zero-shot to GQA, where no GQA-specific checkpoint exists, it drops to 47.11\%, well below LXMERT's 59.29\%. This gap is central to our comparative analysis.

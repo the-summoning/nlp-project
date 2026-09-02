@@ -1,0 +1,19 @@
+\section{Task Description}
+
+Visual Question Answering (VQA) requires a system to answer a natural language question about a given image. Formally, given an image $I$ and a question $Q$, the system must produce an answer $A$~\cite{antol2015vqa}. The task was introduced as a benchmark for multimodal reasoning: to answer correctly, a model must jointly understand visual content and natural language, then align the two.
+
+Answering visual questions involves at least three capabilities: (i) extracting visual features (objects, attributes, spatial relations); (ii) parsing question semantics, including compositional and comparative structures; (iii) cross-modal reasoning that connects linguistic queries to visual evidence.
+
+\subsection{Examples}
+
+Questions are typically grouped into three answer types:
+
+\begin{itemize}
+    \item \textbf{Yes/No}: ``Is the dog sitting on the couch?'' $\rightarrow$ ``yes'' (object detection and spatial relation)
+    \item \textbf{Number}: ``How many people are in the image?'' $\rightarrow$ ``3'' (instance detection and counting)
+    \item \textbf{Other}: ``What color is the car?'' $\rightarrow$ ``red'' (attribute recognition and open-ended generation)
+\end{itemize}
+
+\subsection{Real-world applications}
+
+VQA supports several downstream applications~\cite{vqa_survey}. Assistive technology systems let visually impaired users ask questions about their surroundings, turning visual content into natural-language answers. In the medical domain, clinicians can query radiology scans (e.g., ``Is there a fracture in this X-ray?''). Other documented use cases include educational tools that answer questions about diagrams or cultural-heritage artifacts, and video surveillance systems that answer natural-language queries about recorded footage.

@@ -1,0 +1,77 @@
+\section{Comparative Evaluation}
+
+We compare three models spanning the three architectural generations: a Vanilla VQA baseline, LXMERT, and BLIP.
+
+\subsection{Experimental Setting}
+
+\minisection{Vanilla VQA} We implemented this baseline from scratch following the architecture proposed by Antol et al.~\cite{antol2015vqa}, with a few deliberate changes over the original design. We replace their VGGNet image encoder with ResNet-101~\cite{he2016resnet} (pretrained on ImageNet, final classification layer removed), a stronger backbone unavailable at the time of the original paper; images are encoded offline and cached to disk as 2048-dimensional feature vectors, which also avoids loading the 44-million-parameter CNN during training, prohibitive on a single Kaggle T4 GPU. Questions are tokenized with NLTK and encoded by a 2-layer LSTM~\cite{hochreiter1997lstm} whose embedding layer is initialized with GloVe~\cite{pennington2014glove} rather than learned from scratch: pretrained embeddings give the model better semantic representations from the start and speed up convergence on limited GPU time; the embeddings are then fine-tuned during training.
+
+The fusion mechanism is a Hadamard (element-wise) product between L2-normalized image and question representations, each first projected to 1024 dimensions through an MLP with LayerNorm and Tanh. A two-layer classifier with LayerNorm, ReLU, and Dropout produces logits over a fixed answer vocabulary.
+
+Two key design choices deserve mention. First, the answer vocabularies (3129 for VQA v2, 1842 for GQA) were chosen to match figures commonly used in VQA literature: large enough to cover most questions, but not so large that many answers would have only a handful of training examples each, too few to learn reliably given our limited GPU budget. Second, the model uses different loss functions per dataset: binary cross-entropy with soft labels for VQA v2 (where answers are inherently ambiguous) and standard cross-entropy for GQA (where each question has one ground-truth answer). Training uses Adam with learning rate $5 \times 10^{-4}$, batch size 256, and early stopping.
+
+\minisection{LXMERT} We evaluate two pretrained checkpoints from HuggingFace: \href{https://huggingface.co/unc-nlp/lxmert-vqa-uncased}{\texttt{unc-nlp/lxmert-vqa-uncased}} for VQA v2 and \href{https://huggingface.co/unc-nlp/lxmert-gqa-uncased}{\texttt{unc-nlp/lxmert-gqa-uncased}} for GQA. The model processes 36 pre-extracted Faster R-CNN region features per image (2048-dimensional) through three Transformer encoders. Like Vanilla VQA, LXMERT operates under closed-vocabulary classification: the output layer produces logits over a fixed answer set, and predictions are obtained via argmax. Inference is zero-shot: we use the provided classification heads without fine-tuning.
+
+\minisection{BLIP} We use the single available checkpoint \href{https://huggingface.co/ybelkada/blip-vqa-base}{\texttt{ybelkada/blip-vqa-base}} from HuggingFace, loaded in \texttt{fp16} for memory efficiency. The model pairs a ViT-B/16 vision encoder with a BERT-based encoder-decoder, generating answers via greedy decoding (max 10 tokens). Output is free-form text rather than a vocabulary index. Since no GQA-specific BLIP checkpoint exists, GQA evaluation is zero-shot on the VQA v2 checkpoint.
+
+\subsection{Evaluation Protocol}
+
+For VQA v2, predictions on test-dev and test-standard are submitted to the Eval.AI server\footnote{Link to the VQA v2 challenge: \url{https://eval.ai/web/challenges/challenge-page/830/overview}}, which computes accuracy with per-type breakdowns. For GQA, the official competition is closed, so we evaluate directly on the test-dev balanced split by comparing predictions to ground-truth answers, reporting overall, binary (yes/no), and open accuracy.
+
+\subsection{Results}
+
+\begin{table}[t]
+\centering
+\small
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Model} & \textbf{Y/N} & \textbf{Num} & \textbf{Other} & \textbf{Overall} \\
+\midrule
+\multicolumn{5}{c}{\textit{VQA v2 test-dev}} \\
+\midrule
+Vanilla & 75.23 & 35.70 & 46.03 & 56.88 \\
+LXMERT & 86.76 & 52.95 & 60.17 & 70.30 \\
+BLIP   & 92.25 & 54.55 & 66.91 & 75.95 \\
+\midrule
+\multicolumn{5}{c}{\textit{VQA v2 test-standard}} \\
+\midrule
+Vanilla & 75.55 & 35.43 & 46.14 & 57.17 \\
+LXMERT & 86.41 & 52.89 & 60.28 & 70.31 \\
+BLIP   & 92.32 & 54.39 & 66.81 & 76.03 \\
+\bottomrule
+\end{tabular}
+\caption{VQA v2 results (\% soft accuracy, averaged over 10 annotators).}
+\label{tab:vqa_results}
+\end{table}
+
+\begin{table}[t]
+\centering
+\small
+\begin{tabular}{lccc}
+\toprule
+\textbf{Model} & \textbf{Overall} & \textbf{Binary} & \textbf{Open} \\
+\midrule
+Vanilla & 47.49 & 64.46 & 37.95 \\
+LXMERT  & 59.29 & 77.17 & 49.25 \\
+BLIP    & 47.11 & 65.66 & 36.69 \\
+\bottomrule
+\end{tabular}
+\caption{GQA test-dev balanced results (\% exact-match accuracy).}
+\label{tab:gqa_results}
+\end{table}
+
+VQA v2 (Table~\ref{tab:vqa_results}) shows the expected generational progression: 56.88\% (Vanilla) $\rightarrow$ 70.30\% (LXMERT, +13.42) $\rightarrow$ 75.95\% (BLIP, +5.65). The largest gains appear between the Vanilla baseline and LXMERT, suggesting that cross-modal attention contributes more than the shift from classification to generation. All three models follow the same difficulty ranking: yes/no questions are easiest, counting is hardest.
+
+GQA (Table~\ref{tab:gqa_results}) tells a different story. LXMERT leads at 59.29\%, while BLIP drops to 47.11\%, below even the Vanilla baseline (47.49\%). On the binary subset, LXMERT holds a 12-point advantage over BLIP (77.17\% vs.\ 65.66\%), and the gap widens on open questions (49.25\% vs.\ 36.69\%). Note that GQA's ``open'' category, unlike VQA v2's ``other'' column in Table~\ref{tab:vqa_results}, also includes counting questions, so the two are not directly comparable.
+
+\subsection{Discussion}
+
+The VQA v2 results are consistent with the architectural narrative. The Vanilla baseline's Hadamard fusion captures only first-order interactions between modalities; LXMERT's multi-layer cross-attention builds richer, context-dependent alignments; BLIP's generative pretraining adds a further boost, particularly on open-ended questions where its vocabulary is not artificially restricted. Our reproduced BLIP accuracy (75.95\%) is below the 78.25\% reported in the original paper~\cite{li2022blip}, plausibly due to two protocol differences rather than a flaw in our evaluation: the original paper fine-tunes and evaluates at $480\times480$ resolution, while our pipeline operates at $224\times224$, giving the model less visual detail; and the official BLIP codebase evaluates VQA by \emph{ranking} a fixed list of candidate answers, whereas our setup uses free-form greedy \emph{generation}, which is not constrained to match the exact wording of any ground-truth answer and is therefore more exposed to the exact-match penalty on semantically correct but differently phrased answers.
+
+The GQA results demand a more nuanced reading. Unlike the modest VQA v2 gap discussed above, BLIP's much larger GQA shortfall cannot be attributed to evaluation protocol (rank vs.\ generation) or resolution alone; it stems primarily from zero-shot domain transfer, detailed next. LXMERT's advantage is not purely architectural, since it benefits from a checkpoint specifically fine-tuned on GQA. BLIP, lacking any GQA adaptation, must answer GQA questions using only its VQA v2 pretraining: on questions requiring compositional reasoning (e.g.,``What color is the car to the left of the tree?''), BLIP's free-form generation often misses the relational constraint, whereas LXMERT's fixed-vocabulary classification is constrained to answers the dataset expects. GQA's exact match further penalises open-vocabulary models for syntactic variation; BLIP is additionally disadvantaged by the absence of answer normalisation on its free-form output, unlike the fixed, canonicalised vocabularies of Vanilla and LXMERT. The expected gain from normalisation is small, however, and does not alter the ranking.
+
+This reversal, with BLIP dominating VQA v2 but underperforming on GQA, illustrates a tension between generality and specialization. Generative models offer flexibility (answers beyond a fixed vocabulary) and strong in-domain performance, but their advantage shrinks when the evaluation distribution differs from pretraining. Closed-vocabulary classifiers trained on task-specific data remain competitive, particularly on benchmarks with controlled answer spaces.
+
+A further limitation applies to all three models. Vanilla VQA and LXMERT are also capped by a fixed answer vocabulary: even if they reason correctly about the image, they can only output the closest available answer, so a wrong prediction does not necessarily mean an absence of reasoning. Still, the pattern is consistent with the well-known language-prior problem in VQA, where models partly guess from question wording rather than the image. BLIP is not restricted to a fixed list of answers, but its sharp drop on GQA suggests it relies on something similar: its answers still seem to depend on the patterns it picked up from VQA v2, since a model that truly reasoned about the image and question should not collapse so badly on a new dataset.
+
+Counting remains a hard ceiling for all models. Even BLIP, the strongest system, reaches only 54.55\% on VQA v2 counting questions, compared to 92.25\% on yes/no. This gap reflects a persistent limitation of current architectures: detecting objects is necessary but not sufficient for counting them.

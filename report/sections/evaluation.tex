@@ -1,0 +1,5 @@
+\section{State-of-the-art Evaluation}
+
+VQA v2 uses soft accuracy~\cite{antol2015vqa}, which collects 10 annotator answers per question and awards partial credit proportional to annotator agreement: $\text{Acc}(a) = \min(\text{count}(a)/3, 1.0)$. If 7 of 10 annotators say ``red'' and 3 say ``crimson'', predicting either earns full credit. This avoids penalising semantically equivalent answers and enables fine-grained breakdowns by question type: yes/no, number, and other.
+
+GQA uses exact-match accuracy on the test-dev balanced split, with a single ground-truth answer per question after lowercasing. This is stricter than VQA v2's soft metric: it penalises semantically correct answers phrased differently from the expected form (e.g., ``a car'' vs.\ ``car''). The official breakdown separates binary (yes/no) from open questions; unlike VQA v2, GQA does not report a separate category for counting questions, which fall under ``open''.

@@ -1,0 +1,9 @@
+\section{Datasets and Benchmarks}
+
+We evaluate on two complementary benchmarks.
+
+\textbf{VQA v2}~\cite{goyal2017vqav2} is our primary benchmark with over 1.1 million questions about COCO images. Each question is answered by 10 annotators, enabling the soft accuracy metric that credits plausible alternatives. Critically, VQA v2 was designed to counter language bias: each question is paired with two similar images that yield different answers, forcing models to rely on visual content rather than linguistic shortcuts. The dataset provides test-dev and test-standard splits for official evaluation.
+
+\textbf{GQA}~\cite{hudson2019gqa} serves as a secondary benchmark focused on compositional reasoning. Its 22 million questions are generated from scene graphs, enabling control over linguistic diversity and reasoning complexity. We use the test-dev balanced split, which normalizes answer distributions to prevent trivial baselines from exploiting class imbalance. GQA allows us to test whether models trained on VQA v2 generalize to questions requiring structured reasoning about object attributes and relations.
+
+Other benchmarks address complementary challenges not covered by our evaluation: OK-VQA~\cite{marino2019okvqa} and A-OKVQA~\cite{schwenk2022aokvqa} require external or commonsense world knowledge beyond what is visible in the image; VizWiz~\cite{gurari2018vizwiz} is sourced from photos and spoken questions recorded by blind users; TextVQA~\cite{singh2019textvqa} requires reading and reasoning about text embedded in the image. We focus on VQA v2 and GQA as they remain among the most widely used benchmarks for comparing closed-vocabulary and generative VQA architectures.
